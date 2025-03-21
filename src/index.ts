@@ -4,6 +4,9 @@
  * MCP server for PineScript validation, fixing, and templates
  */
 
+// Import patched protocol first to ensure timeout is set before FastMCP is initialized
+import './patched-protocol.js';
+
 import { FastMCP } from 'fastmcp';
 import { z } from 'zod';
 import { validatePineScript } from './validators/syntaxValidator.js';
@@ -14,27 +17,70 @@ import { PineScriptVersion } from './utils/versionDetector.js';
 import { registerConfigTools } from './config/configTool.js';
 import { config as userConfig } from './config/userConfig.js';
 import { formatPineScript, FormatOptions } from './utils/formatter.js';
+import { getTestScript, getVersionedTestScript } from './templates/testScript.js';
+import { DEFAULT_PROTOCOL_CONFIG } from './config/protocolConfig.js';
+import { createRequestOptions } from './patched-protocol.js';
 
 /**
  * Main function to run the MCP server
  */
 async function main() {
   try {
-    console.log('TradingView PineScript MCP server started');
+    console.log('Starting PineScript MCP server...');
     
     // Create the version manager
     const versionManager = new VersionManager(userConfig.versionManagement.storageDirectory);
     
-    // Initialize MCP server
+    // Initialize MCP server with name and version
     const mcp = new FastMCP({
-      name: 'TradingView PineScript MCP',
+      name: 'PineScript MCP',
       version: '1.0.0'
+      // Note: Timeout is handled by our patched protocol
     });
     
     // Register configuration tools
     registerConfigTools(mcp);
     
-    // Add tool for validating PineScript
+    // Add test connection tool
+    mcp.addTool({
+      name: 'test_connection',
+      description: 'Test MCP server connectivity with a minimal script',
+      parameters: z.object({
+        version: z.string().describe('PineScript version to test with').default('5')
+      }),
+      execute: async (params) => {
+        console.log('Testing server connection...');
+        
+        try {
+          // Get test script for specified version (or default to v5)
+          const version = params.version || '5';
+          const testScript = getVersionedTestScript(version);
+          
+          console.log(`Running connection test with minimal v${version} script...`);
+          
+          // Validate the test script
+          const result = validatePineScript(testScript);
+          
+          console.log('Connection test completed successfully');
+          
+          return JSON.stringify({
+            success: true,
+            message: 'MCP server connection is working correctly',
+            validation_result: result
+          });
+        } catch (error) {
+          console.error('Connection test failed:', error);
+          
+          return JSON.stringify({
+            success: false,
+            message: `MCP server connection test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            error: String(error)
+          });
+        }
+      }
+    });
+    
+    // Add tool for validating PineScript with extended timeout
     mcp.addTool({
       name: 'validate_pinescript',
       description: 'Validates PineScript code for syntax errors',
@@ -42,14 +88,38 @@ async function main() {
         script: z.string().describe('The PineScript code to validate'),
         version: z.string().describe('The PineScript version (v4, v5, v6)').default('v5')
       }),
-      execute: async (params) => {
-        const { script, version } = params;
-        const result = validatePineScript(script, version);
-        return JSON.stringify({
-          valid: result.valid,
-          errors: result.errors,
-          warnings: result.warnings
-        });
+      execute: async (params, context) => {
+        console.log('Processing validation request with extended timeout...');
+        
+        try {
+          // Create a validation context with progress reporting
+          const validationContext = {
+            reportProgress: (progress: any) => {
+              if (context && context.reportProgress) {
+                // Send progress updates to reset the timeout
+                context.reportProgress(progress);
+              }
+            }
+          };
+          
+          // Validate the script with progress reporting
+          const result = validatePineScript(params.script, params.version, validationContext);
+          
+          console.log('Validation completed successfully');
+          
+          return JSON.stringify({
+            valid: result.valid,
+            errors: result.errors,
+            warnings: result.warnings
+          });
+        } catch (error: any) {
+          console.error('Validation error:', error);
+          return JSON.stringify({
+            valid: false,
+            errors: [`Validation error: ${error.message || 'Unknown error'}`],
+            warnings: []
+          });
+        }
       }
     });
     
@@ -252,16 +322,22 @@ async function main() {
     });
     
     // Start the server
-    await mcp.start({
+    await mcp.start({ 
       transportType: 'stdio'
     });
     
-    console.log('MCP server started');
+    console.log('PineScript MCP server started successfully');
   } catch (error) {
-    console.error('Error starting MCP server:', error);
+    console.error('Failed to start MCP server:', error);
     process.exit(1);
   }
 }
 
-// Run the main function
-main(); 
+// Log startup with timeout information
+console.log('Starting PineScript MCP server with extended timeout (5 minutes)');
+
+// Run the main function with error handling
+main().catch(error => {
+  console.error('Unhandled error in MCP server:', error);
+  process.exit(1);
+}); 
