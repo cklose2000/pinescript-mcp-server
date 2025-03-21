@@ -4,11 +4,15 @@
   "description": "TradingView PineScript MCP Server for Cursor",
   "main": "dist/index.js",
   "type": "module",
+  "bin": {
+    "pinescript-mcp": "dist/cli/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon --exec ts-node src/index.ts",
     "start-server": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
+    "cli": "node --loader ts-node/esm src/cli/index.ts",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
@@ -26,6 +30,8 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
     "express": "^5.0.1",
     "fastmcp": "^1.20.5",
     "zod": "^3.22.4"

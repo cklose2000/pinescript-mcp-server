@@ -42,6 +42,26 @@ export interface PineScriptConfig {
     includeLineNumbers: boolean;
     colorized: boolean;
   };
+
+  // LLM Configuration
+  llm?: {
+    defaultProvider?: 'openai' | 'anthropic' | 'mock';
+    openai?: {
+      apiKey?: string;
+      defaultModel?: string;
+    };
+    anthropic?: {
+      apiKey?: string;
+      defaultModel?: string;
+    };
+    promptTemplates?: {
+      strategyAnalysis?: string;
+      backTestAnalysis?: string;
+      enhancementGeneration?: string;
+    };
+    timeout?: number;
+    maxRetries?: number;
+  };
 }
 
 // Default configuration values
@@ -69,6 +89,49 @@ const defaultConfig: PineScriptConfig = {
     includeLineNumbers: true,
     colorized: true,
   },
+  llm: {
+    defaultProvider: 'mock', // Start with mock provider by default
+    timeout: 60000, // Default 60 second timeout
+    maxRetries: 3,
+    promptTemplates: {
+      strategyAnalysis: `Analyze this PineScript strategy and identify:
+1. Key parameters that could be optimized
+2. Logical weaknesses in entry/exit conditions
+3. Missing risk management components
+4. Opportunities for performance improvement
+
+Strategy code:
+{{strategy}}
+
+Respond with valid JSON with sections for parameters, logic, risk, and performance.`,
+      
+      backTestAnalysis: `Analyze these TradingView backtest results:
+{{results}}
+
+For the strategy:
+{{strategy}}
+
+Identify:
+1. Key strengths in the performance
+2. Areas of concern (drawdown, win rate, etc.)
+3. Specific suggestions to address performance issues
+4. Parameters that should be adjusted based on these results
+
+Respond with actionable recommendations for improving the strategy.`,
+      
+      enhancementGeneration: `Based on this analysis of a PineScript strategy:
+{{analysis}}
+
+Generate {{count}} different enhanced versions of this original strategy:
+{{strategy}}
+
+1. Version with improved entry/exit logic
+2. Version with added risk management
+3. Version with optimized parameters
+
+For each version, explain the changes made and expected improvement.`
+    }
+  }
 };
 
 // Get config file path
@@ -179,6 +242,22 @@ function deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>)
 function isObject(item: any): item is Record<string, any> {
   return (item && typeof item === 'object' && !Array.isArray(item));
 }
+
+// Configure LLM settings
+export const configureLLM = (llmConfig: Partial<PineScriptConfig['llm']>): PineScriptConfig => {
+  const currentConfig = loadUserConfig();
+  
+  // Create updated config with new LLM settings
+  const updatedConfig: PineScriptConfig = {
+    ...currentConfig,
+    llm: {
+      ...currentConfig.llm,
+      ...llmConfig
+    }
+  };
+  
+  return saveUserConfig(updatedConfig);
+};
 
 // Export configuration
 export const config = loadUserConfig(); 

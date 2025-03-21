@@ -1,86 +1,54 @@
-# Current Development Context
+# Active Context
 
-## Active Focus
+## Current Focus
 
-We are working on a PineScript support toolset that integrates with Cursor via FastMCP. The project has now completed several key components including:
+We are currently implementing the **LLM integration** for strategy analysis and optimization. The primary goal is to leverage AI capabilities to enhance PineScript trading strategies through automated analysis and improvement suggestions.
 
-- A configuration system for user preferences
-- Version management for PineScript code (converting between v5 and v6)
-- PineScript error detection and fixing capabilities
-- Formatting capabilities for consistent PineScript code style
-- GitHub repository setup and secure environment management
+### Recently Completed
 
-Our most recent work focused on implementing a robust error fixer that can detect and automatically fix common syntax errors in PineScript code, including:
+- Added LLM configuration in the user config system
+- Created a service architecture for interacting with language models (OpenAI, Anthropic)
+- Implemented a mock provider for development and testing
+- Built CLI commands for strategy analysis and enhancement
+- Created prompt templates for different types of strategy analysis
 
-- Missing version annotations
-- Unbalanced parentheses, brackets, and braces
-- Unclosed string literals
-- Missing commas in function arguments
-- Deprecated function usage
-- Incorrect variable export syntax
+### Active Work
 
-## Current Tasks
+We have completed the initial implementation of the LLM integration with the following components:
 
-We've successfully completed the error fixer implementation with comprehensive tests and prepared the project for GitHub hosting. Our current areas of focus are:
+1. **User Configuration for LLM**
+   - Added new configuration section for LLM providers and settings
+   - Created helper functions to update LLM-specific settings
+   - Provided default configuration values for development
 
-1. **Indicator Generator Tool**: Create a tool that can generate PineScript indicators based on user specifications. This will involve:
-   - Designing a parameter schema for different indicator types
-   - Creating templates for common indicators (moving averages, oscillators, etc.)
-   - Building a generator function that can customize these templates
-   - Adding proper MCP integration for this functionality
+2. **LLM Service Architecture**
+   - Created a service that selects the appropriate provider based on configuration
+   - Designed interfaces for strategy analysis and enhancement
+   - Implemented a mock provider for testing without API credentials
 
-2. **GitHub Integration & CI/CD**: Establish a proper development workflow with:
-   - Complete GitHub repository setup
-   - CI/CD pipeline configuration
-   - Automated testing on pull requests
-   - Documentation generation
+3. **CLI Command Interface**
+   - Built `llm analyze` command to examine strategies
+   - Built `llm enhance` command to generate improved versions
+   - Built `llm config` command to manage LLM settings
 
-## Implementation Approach
+### Current Decisions
 
-For the indicator generator, we'll need to:
+- Using a factory pattern to select the appropriate LLM provider
+- Starting with a mock implementation that returns realistic but static data
+- Planning to implement OpenAI provider next, followed by Anthropic
+- Designing a system that can be extended to other providers in the future
 
-1. Create a system to define indicator parameters (periods, sources, colors, etc.)
-2. Build template structures that can be populated with these parameters
-3. Implement validation to ensure proper generation
-4. Integrate with the MCP server as a new tool
-5. Write comprehensive tests
+### Next Steps
 
-For GitHub integration, we'll focus on:
+1. Implement the real OpenAI provider with proper API authentication
+2. Add retry logic and error handling for API failures
+3. Implement Anthropic provider with appropriate model selection
+4. Fine-tune prompt templates for best results
+5. Create more detailed strategy analysis output formats
 
-1. Configuring GitHub Actions for CI/CD
-2. Setting up branch protection rules
-3. Creating issue and pull request templates
-4. Establishing a contribution workflow
+## Technical Context
 
-## Technical Considerations
-
-- We should leverage our existing version management system to ensure generated indicators use the right PineScript version
-- The generator should produce well-formatted code using our formatting utilities
-- We'll need to carefully handle string templates to avoid syntax errors
-- Documentation should be included in generated indicators
-- Sensitive information must remain protected via environment variables and .gitignore
-
-## Recent Decisions
-
-- We decided to implement a comprehensive error detection system in a separate utility (errorDetector.ts) to support the error fixer
-- All test implementations now use proper mocking techniques for isolated testing
-- We've standardized the approach for integrating new tools with the MCP server
-- We've established a secure approach to handling environment variables and API keys
-
-## What's Working
-
-- The configuration system is fully functional
-- PineScript version detection and conversion works reliably
-- Error fixing handles most common syntax issues
-- The MCP server correctly registers and exposes all tools
-- Repository management is set up with security best practices
-
-## Next Steps
-
-1. Start designing the indicator generator parameter schema
-2. Create template structures for common indicator types
-3. Implement the generator function
-4. Add MCP server integration for this new tool
-5. Write tests for the indicator generator
-6. Configure GitHub Actions for CI/CD
-7. Complete initial release documentation 
+- LLM service is in `src/services/llmService.ts`
+- CLI commands are in `src/cli/commands/llm.ts`
+- Configuration updates are in `src/config/userConfig.ts`
+- Example strategies for testing are in `examples/` 
