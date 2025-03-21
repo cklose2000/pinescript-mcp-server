@@ -1,49 +1,33 @@
 /**
- * Test script to test the PineScript error fixer
+ * Test script to fix a single error - unclosed string
  */
 
 // Import the fixer and validator
-import { fixPineScriptErrors } from './src/fixers/errorFixer.js';
-import { validatePineScript } from './src/validators/syntaxValidator.js';
+import { fixPineScriptErrors } from '../../src/fixers/errorFixer.js';
+import { validatePineScript } from '../../src/validators/syntaxValidator.js';
 
-// Script with common issues
-const scriptWithIssues = `//@version=5
-indicator("Example With Issues")
+// Script with unclosed string
+const scriptWithIssue = `//@version=5
+indicator("Example With Unclosed String")
 
-//Missing semicolons
-var1 = 10
-var2 = 20
-result = var1 + var2
-
-//Unbalanced brackets
-if (close > open {
-    var3 = high
-}
-
-//Unclosed string
 message = "This string is not closed
 
-//Using := without var declaration
-counter = 0
-counter := counter + 1
-
-//Missing closing parenthesis in function call
-plot(close, "Price", color=color.blue`;
+plot(close, "Price", color=color.blue)`;
 
 // Try to fix the script
 console.log('Original script:');
 console.log('================');
-console.log(scriptWithIssues);
+console.log(scriptWithIssue);
 console.log('================\n');
 
 // Validate the original script
 console.log('Validating original script...');
-const originalValidation = validatePineScript(scriptWithIssues);
+const originalValidation = validatePineScript(scriptWithIssue);
 console.log('Validation result:', JSON.stringify(originalValidation, null, 2));
 
 // Fix errors
 console.log('\nFixing errors...');
-const fixedResult = fixPineScriptErrors(scriptWithIssues);
+const fixedResult = fixPineScriptErrors(scriptWithIssue);
 console.log('Fix result:', JSON.stringify(fixedResult, null, 2));
 
 // Validate the fixed script

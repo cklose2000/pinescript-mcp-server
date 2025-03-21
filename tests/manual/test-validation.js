@@ -3,8 +3,8 @@
  */
 
 // Import the validator directly
-import { validatePineScript } from './src/validators/syntaxValidator.js';
-import { getTestScript } from './src/templates/testScript.js';
+import { validatePineScript } from '../../src/validators/syntaxValidator.js';
+import { getTestScript } from '../../src/templates/testScript.js';
 
 // Get the minimal test script
 const testScript = getTestScript();

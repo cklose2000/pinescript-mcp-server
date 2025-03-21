@@ -11,8 +11,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Path to our modified strategy files
-const originalStrategyPath = path.join(__dirname, '..', 'examples', 'Modified_GoldScalping_Strategy.txt');
-const updatedStrategyPath = path.join(__dirname, '..', 'examples', 'Modified_GoldScalping_Strategy_With_Volume.txt');
+const originalStrategyPath = path.join(__dirname, '..', '..', 'examples', 'Modified_GoldScalping_Strategy.txt');
+const updatedStrategyPath = path.join(__dirname, '..', '..', 'examples', 'Modified_GoldScalping_Strategy_With_Volume.txt');
 
 // Function to validate the updated strategy
 async function validateUpdatedStrategy() {

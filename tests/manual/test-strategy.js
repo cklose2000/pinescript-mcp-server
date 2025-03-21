@@ -5,14 +5,14 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { miniGoldStrategy, simplifiedGoldStrategy } from './templates/simplified-gold-strategy.js';
+import { miniGoldStrategy, simplifiedGoldStrategy } from '../../src/templates/simplified-gold-strategy.js';
 
 // Get the current directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Path to our modified strategy file
-const strategyFilePath = path.join(__dirname, '..', 'examples', 'Modified_GoldScalping_Strategy.txt');
+const strategyFilePath = path.join(__dirname, '..', '..', 'examples', 'Modified_GoldScalping_Strategy.txt');
 
 // First test the connection with a minimal script
 async function testConnection() {

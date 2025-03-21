@@ -3,7 +3,7 @@
  */
 
 // Import the validator directly
-import { validatePineScript } from './src/validators/syntaxValidator.js';
+import { validatePineScript } from '../../src/validators/syntaxValidator.js';
 
 // The Gold Scalping strategy with MA Filter
 const complexScript = `//@version=5
