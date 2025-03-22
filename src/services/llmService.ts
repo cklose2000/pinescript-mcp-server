@@ -198,25 +198,79 @@ export class LLMService {
   /**
    * Get a prompt from the template manager
    */
-  private getPromptFromTemplate(templateId: string, replacements: Record<string, string>): string {
+  private async getPromptFromTemplate(templateId: string, context: Record<string, any>): Promise<string> {
     try {
-      // First try to use the new template manager
-      return templateManager.generatePrompt(templateId, replacements);
-    } catch (error) {
-      console.warn(`Template '${templateId}' not found in template manager, falling back to legacy templates`);
+      // First try to use the template manager
+      const startTime = Date.now();
+      const prompt = await templateManager.generatePrompt(templateId, context);
+      const endTime = Date.now();
       
-      // Fall back to legacy templates from config
-      const template = config.llm?.promptTemplates?.[templateId as keyof typeof config.llm.promptTemplates];
-      
-      if (!template) {
-        throw new Error(`Prompt template '${templateId}' not found in configuration or template manager`);
+      if (prompt) {
+        // Record template usage if not using mock provider
+        if (!this.useMockFallback) {
+          const provider = config.llm?.defaultProvider || 'unknown';
+          const model = this.getCurrentModel();
+          templateManager.recordTemplateUsage(
+            templateId, 
+            provider, 
+            model,
+            true, 
+            endTime - startTime
+          ).catch(err => {
+            console.warn('Failed to record template usage:', err);
+          });
+        }
+        
+        return prompt;
       }
       
-      return Object.entries(replacements).reduce(
-        (prompt, [key, value]) => prompt.replace(new RegExp(`{{${key}}}`, 'g'), value),
-        template
-      );
+      // Fall back to legacy templates from config
+      console.warn(`Template '${templateId}' not found in template manager, falling back to legacy templates`);
+      return this.getLegacyPrompt(templateId, context);
+    } catch (error) {
+      console.warn(`Error generating prompt from template '${templateId}':`, error);
+      return this.getLegacyPrompt(templateId, context);
     }
+  }
+
+  /**
+   * Get a prompt from legacy templates in config
+   */
+  private getLegacyPrompt(templateId: string, context: Record<string, any>): string {
+    const legacyTemplateId = templateId.replace(/-/g, '_');
+    const template = config.llm?.promptTemplates?.[legacyTemplateId as keyof typeof config.llm.promptTemplates];
+    
+    if (!template) {
+      throw new Error(`Prompt template '${templateId}' not found in configuration or template manager`);
+    }
+    
+    return Object.entries(context).reduce(
+      (prompt, [key, value]) => prompt.replace(new RegExp(`{{${key}}}`, 'g'), String(value)),
+      template
+    );
+  }
+
+  /**
+   * Get the current model being used
+   */
+  private getCurrentModel(): string {
+    const defaultProvider = config.llm?.defaultProvider || 'unknown';
+    
+    if (defaultProvider === 'openai') {
+      // Get the OpenAI model
+      return config.llm?.openai?.defaultModel || 'unknown';
+    } else if (defaultProvider === 'anthropic') {
+      // Get the first enabled Anthropic model
+      if (config.llm?.anthropic?.models) {
+        // Get first model name or key from the models object
+        const modelKeys = Object.keys(config.llm.anthropic.models);
+        if (modelKeys.length > 0) {
+          return modelKeys[0]; // Return the first model name
+        }
+      }
+    }
+    
+    return 'unknown';
   }
 
   /**
@@ -250,12 +304,27 @@ export class LLMService {
   }
 
   /**
+   * Get a text completion from the LLM
+   */
+  async getTextCompletion(prompt: string): Promise<string> {
+    return this.executeWithFallback(
+      async () => {
+        console.log(`Using ${this.useMockFallback ? 'mock' : 'real'} provider for text completion`);
+        return await this.provider.sendPrompt(prompt);
+      },
+      async () => {
+        console.log(`Using mock provider for text completion`);
+        return await this.mockProvider.sendPrompt(prompt);
+      }
+    );
+  }
+
+  /**
    * Analyze a PineScript strategy and provide insights
    */
   async analyzeStrategy(strategyContent: string): Promise<StrategyAnalysis> {
-    const prompt = this.getPromptFromTemplate('strategy-analysis', {
-      strategy: strategyContent
-    });
+    const context = { strategy: strategyContent };
+    const prompt = await this.getPromptFromTemplate('strategy-analysis', context);
     
     return this.executeWithFallback(
       async () => {
@@ -273,10 +342,11 @@ export class LLMService {
    * Analyze backtest results and provide insights
    */
   async analyzeBacktest(backtestResults: string, strategyContent: string): Promise<BacktestAnalysis> {
-    const prompt = this.getPromptFromTemplate('backtest-analysis', {
+    const context = {
       results: backtestResults,
       strategy: strategyContent
-    });
+    };
+    const prompt = await this.getPromptFromTemplate('backtest-analysis', context);
     
     return this.executeWithFallback(
       async () => {
@@ -294,10 +364,11 @@ export class LLMService {
    * Generate enhanced versions of a strategy
    */
   async enhanceStrategy(strategyContent: string, count: number = 3): Promise<EnhancedStrategy[]> {
-    const prompt = this.getPromptFromTemplate('strategy-enhancement', {
-      strategyContent: strategyContent,
-      count: count.toString()
-    });
+    const context = {
+      strategy: strategyContent,
+      count: count
+    };
+    const prompt = await this.getPromptFromTemplate('strategy-enhancement', context);
     
     return this.executeWithFallback(
       async () => {

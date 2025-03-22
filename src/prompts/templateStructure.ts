@@ -96,7 +96,11 @@ export const StandardSections = {
 /**
  * Assemble a prompt from a template and placeholder values
  */
-export function assemblePrompt(template: PromptTemplate, replacements: Record<string, string>): string {
+export function assemblePrompt(
+  template: PromptTemplate, 
+  context: Record<string, any>, 
+  replacements: Record<string, string> = {}
+): string {
   // Sort sections by order
   const sortedSections = [...template.sections].sort((a, b) => a.order - b.order);
   
@@ -104,10 +108,37 @@ export function assemblePrompt(template: PromptTemplate, replacements: Record<st
   let prompt = '';
   
   for (const section of sortedSections) {
-    prompt += `# ${section.title}\n${section.content}\n\n`;
+    let sectionContent = section.content;
+    
+    // Replace context variables if they exist in the section content
+    if (context) {
+      // Replace context variables using {{context.variable}} syntax
+      const contextRegex = /{{context\.([^}]+)}}/g;
+      sectionContent = sectionContent.replace(contextRegex, (match, key) => {
+        const keyPath = key.split('.');
+        let value = context;
+        
+        // Navigate through nested objects
+        for (const k of keyPath) {
+          if (value === undefined || value === null) return match;
+          value = value[k];
+        }
+        
+        if (value === undefined || value === null) return match;
+        
+        // Format objects and arrays as JSON
+        if (typeof value === 'object') {
+          return JSON.stringify(value, null, 2);
+        }
+        
+        return String(value);
+      });
+    }
+    
+    prompt += `# ${section.title}\n${sectionContent}\n\n`;
   }
   
-  // Replace placeholders
+  // Replace explicit placeholders
   return Object.entries(replacements).reduce(
     (result, [key, value]) => result.replace(new RegExp(`{{${key}}}`, 'g'), value),
     prompt
@@ -143,40 +174,48 @@ export function createTemplate(
 
 /**
  * Validate a template for required sections and structure
+ * Returns true if valid, throws an error if invalid
  */
-export function validateTemplate(template: PromptTemplate): void {
-  // Check required fields
-  if (!template.id) throw new Error('Template must have an ID');
-  if (!template.name) throw new Error('Template must have a name');
-  if (!template.description) throw new Error('Template must have a description');
-  if (!template.category) throw new Error('Template must have a category');
-  if (!template.sections || template.sections.length === 0) {
-    throw new Error('Template must have at least one section');
-  }
-  
-  // Check required sections
-  const hasIntroduction = template.sections.some(s => s.id === StandardSections.INTRODUCTION.id);
-  const hasTask = template.sections.some(s => s.id === StandardSections.TASK.id);
-  const hasContext = template.sections.some(s => s.id === StandardSections.CONTEXT.id);
-  const hasOutputFormat = template.sections.some(s => s.id === StandardSections.OUTPUT_FORMAT.id);
-  
-  if (!hasIntroduction) throw new Error('Template must have an Introduction section');
-  if (!hasTask) throw new Error('Template must have a Task section');
-  if (!hasContext) throw new Error('Template must have a Context section');
-  if (!hasOutputFormat) throw new Error('Template must have an Output Format section');
-  
-  // Check for placeholders in context
-  if (template.placeholders && template.placeholders.length > 0) {
-    const contextSection = template.sections.find(s => s.id === StandardSections.CONTEXT.id);
-    if (contextSection) {
-      for (const placeholder of template.placeholders) {
-        const placeholderPattern = new RegExp(`{{${placeholder}}}`, 'g');
-        if (!placeholderPattern.test(contextSection.content) && 
-            !template.sections.some(s => placeholderPattern.test(s.content))) {
-          throw new Error(`Placeholder {{${placeholder}}} is declared but not used in any section`);
+export function validateTemplate(template: PromptTemplate): boolean {
+  try {
+    // Check required fields
+    if (!template.id) throw new Error('Template must have an ID');
+    if (!template.name) throw new Error('Template must have a name');
+    if (!template.description) throw new Error('Template must have a description');
+    if (!template.category) throw new Error('Template must have a category');
+    if (!template.sections || template.sections.length === 0) {
+      throw new Error('Template must have at least one section');
+    }
+    
+    // Check required sections
+    const hasIntroduction = template.sections.some(s => s.id === StandardSections.INTRODUCTION.id);
+    const hasTask = template.sections.some(s => s.id === StandardSections.TASK.id);
+    const hasContext = template.sections.some(s => s.id === StandardSections.CONTEXT.id);
+    const hasOutputFormat = template.sections.some(s => s.id === StandardSections.OUTPUT_FORMAT.id);
+    
+    if (!hasIntroduction) throw new Error('Template must have an Introduction section');
+    if (!hasTask) throw new Error('Template must have a Task section');
+    if (!hasContext) throw new Error('Template must have a Context section');
+    if (!hasOutputFormat) throw new Error('Template must have an Output Format section');
+    
+    // Check for placeholders in context
+    if (template.placeholders && template.placeholders.length > 0) {
+      const contextSection = template.sections.find(s => s.id === StandardSections.CONTEXT.id);
+      if (contextSection) {
+        for (const placeholder of template.placeholders) {
+          const placeholderPattern = new RegExp(`{{${placeholder}}}`, 'g');
+          if (!placeholderPattern.test(contextSection.content) && 
+              !template.sections.some(s => placeholderPattern.test(s.content))) {
+            throw new Error(`Placeholder {{${placeholder}}} is declared but not used in any section`);
+          }
         }
       }
     }
+    
+    return true;
+  } catch (error) {
+    console.warn(`Template validation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    return false;
   }
 }
 

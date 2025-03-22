@@ -1,0 +1,35 @@
+//@version=5
+strategy("Bollinger Bands Strategy", overlay=true)
+
+// Input parameters
+length = input.int(20, "BB Length", minval=1)
+mult = input.float(2.0, "BB StdDev", minval=0.1, step=0.1)
+src = input(close, "Source")
+smaLen = input.int(50, "SMA Filter Length", minval=1)
+
+// Calculate Bollinger Bands
+[middle, upper, lower] = ta.bb(src, length, mult)
+smaFilter = ta.sma(src, smaLen)
+
+// Trading conditions
+longCondition = ta.crossover(src, lower) and close > smaFilter
+shortCondition = ta.crossunder(src, upper) and close < smaFilter
+
+// Position sizing
+riskPct = input.float(1.0, "Risk %", minval=0.1, step=0.1) / 100
+atrLength = input.int(14, "ATR Length", minval=1)
+atrPeriod = ta.atr(atrLength)
+posSize = math.floor(strategy.equity * riskPct / atrPeriod)
+
+// Strategy execution
+if (longCondition)
+    strategy.entry("BBLong", strategy.long, qty=posSize)
+
+if (shortCondition)
+    strategy.entry("BBShort", strategy.short, qty=posSize)
+
+// Plot indicators
+plot(middle, "Middle Band", color=color.yellow)
+plot(upper, "Upper Band", color=color.red)
+plot(lower, "Lower Band", color=color.green)
+plot(smaFilter, "SMA Filter", color=color.blue) 

@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Focus
-The current focus is on implementing Phase 3 of the PineScript MCP project, starting with the Enhanced Prompt Engineering tasks. We are creating a more flexible and modular prompt template system to improve the quality and consistency of interactions with LLMs.
+The current focus is on implementing Phase 3 of the PineScript MCP project, focusing on the Enhanced Prompt Engineering tasks, with an emphasis on testing and stabilizing the template system. We are ensuring all tests pass correctly and that the template vector store integration functions properly.
 
 ## Recent Changes
 1. Implemented a comprehensive template structure system for managing prompt templates
@@ -9,11 +9,14 @@ The current focus is on implementing Phase 3 of the PineScript MCP project, star
 3. Updated the LLM service to use the new template system with backward compatibility
 4. Added testing capabilities for template generation
 5. Updated the directory structure to include a dedicated prompts module
+6. Fixed issues in the template system tests to ensure proper validation and rendering
+7. Resolved references to the correct template embedding method in vector store tests
+8. Successfully ran the test suite with all tests passing
 
 ## Next Steps
 1. Continue implementing the Enhanced Prompt Engineering phase:
    - Add specialized templates for optimization, educational content, and other use cases
-   - Implement version control for templates
+   - Implement vector search improvements for semantic template discovery
    - Create template evaluation metrics
    - Add a template development workflow
 
@@ -29,14 +32,17 @@ The current focus is on implementing Phase 3 of the PineScript MCP project, star
 
 3. **ESM Module System**: We're using ES modules throughout the project, which requires attention to file extensions (.js) in import statements.
 
+4. **Database Consolidation**: We've decided to focus on Supabase for both regular database storage and vector search capabilities, rather than using both Supabase and NeonDB. This will simplify the architecture and reduce potential integration issues.
+
 ## Technical Constraints
 1. The project uses TypeScript with ES modules, requiring careful attention to import/export patterns.
 2. We need to maintain compatibility with both OpenAI and Anthropic providers.
 3. The system should allow for graceful fallback to mock providers for testing and when API connectivity issues occur.
+4. Testing with TypeScript ES modules requires specific configuration and run commands, with some experimental loader warnings that need to be addressed.
 
 ## Current Issues
-1. Need to ensure consistent output formats across different LLM providers
-2. Testing with TypeScript ES modules requires specific configuration and run commands
+1. Some tests are marked as pending when Supabase is not configured, which is expected behavior but requires documentation.
+2. Need to ensure consistent output formats across different LLM providers.
 
 ### Recently Completed
 
@@ -54,6 +60,10 @@ The current focus is on implementing Phase 3 of the PineScript MCP project, star
 - Implemented the Anthropic provider with Claude API integration
 - Created model-specific configuration for Claude models (opus, sonnet, haiku)
 - Added a test command for Anthropic provider validation
+- Implemented a vector store for template embeddings to enable semantic search
+- Fixed the vector store testing to use the correct method name (storeTemplateEmbedding)
+- Fixed template validation tests by creating properly structured templates with valid placeholders
+- Fixed template rendering tests by directly using the assemblePrompt function with correct replacements
 
 ### Active Work
 
@@ -71,6 +81,7 @@ We have completed the implementation of the LLM integration with the following c
    - Designed interfaces for strategy analysis and enhancement
    - Implemented a mock provider for testing without API credentials
    - Added graceful fallback mechanism when API authentication fails
+   - Enhanced with template-based prompt generation
 
 3. **OpenAI Provider Implementation**
    - Created OpenAI provider that connects to the OpenAI API
@@ -87,13 +98,14 @@ We have completed the implementation of the LLM integration with the following c
    - Created a test command to validate the Anthropic integration
    - Implemented robust error handling and JSON response parsing
 
-5. **CLI Command Interface**
-   - Built `llm analyze` command to examine strategies
-   - Built `llm enhance` command to generate improved versions
-   - Built `llm config` command to manage LLM settings
-   - Added `llm analyze-backtest` command for backtest result analysis
-   - Enhanced error handling in all commands to gracefully handle incomplete API responses
-   - Added `test-anthropic` command for direct testing of the Anthropic provider
+5. **Template System Implementation**
+   - Created a standardized template structure with validation
+   - Implemented a template manager for loading and retrieving templates
+   - Added support for template rendering with placeholder replacement
+   - Created a repository for template storage in Supabase
+   - Added a vector store for semantic search capabilities
+   - Implemented CLI commands for template management
+   - Added testing for template validation, rendering, and vector search
 
 ### Current Decisions
 
@@ -103,6 +115,7 @@ We have completed the implementation of the LLM integration with the following c
 - Designing a system that can be extended to other providers in the future
 - Successfully resolving OpenAI API key handling for multi-line .env file entries
 - Supporting model-specific configurations for different LLM models
+- Using Supabase for both regular database storage and vector search capabilities
 
 ### Key Milestones
 - End of Week 3: Review prompt engineering improvements
@@ -115,9 +128,15 @@ We have completed the implementation of the LLM integration with the following c
 - LLM service is in `src/services/llmService.ts`
 - OpenAI provider is in `src/services/openaiProvider.ts`
 - Anthropic provider is in `src/services/anthropicProvider.ts`
-- CLI commands are in `src/cli/commands/llm.ts`
+- CLI commands are in `src/cli/commands/llm.ts` and `src/cli/commands/templates.ts`
 - Anthropic test command is in `src/cli/commands/test-anthropic.ts`
 - Configuration updates are in `src/config/userConfig.ts`
 - Example strategies for testing are in `examples/`
 - Backtest sample data is in `examples/backtest-results.json`
-- Test utilities for API validation are in `src/tests/` 
+- Test utilities are in `src/tests/`
+- Template manager is in `src/prompts/templateManager.ts`
+- Template structure is in `src/prompts/templateStructure.ts`
+- Template repository is in `src/prompts/templateRepository.ts`
+- Template vector store is in `src/prompts/templateVectorStore.ts`
+- Supabase client is in `src/db/supabaseClient.ts`
+- Vector store is in `src/db/vector/vectorStore.ts` 

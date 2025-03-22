@@ -85,31 +85,44 @@ async function testTemplateManager() {
     console.log('\n--- Testing Template Manager ---');
     
     // 1. List available templates
-    const templateIds = templateManager.getTemplateIds();
+    const templates = await templateManager.getAllTemplates();
+    const templateIds = templates.map(template => template.id);
     console.log(`Available templates: ${templateIds.join(', ')}`);
     
     // 2. Generate a strategy analysis prompt
-    const analysisPrompt = templateManager.generatePrompt('strategy-analysis', {
+    const analysisPrompt = await templateManager.generatePrompt('strategy-analysis', {
       strategy: testStrategyCode
     });
     console.log('\nStrategy Analysis Prompt (first 200 chars):');
-    console.log(analysisPrompt.substring(0, 200) + '...');
+    if (analysisPrompt) {
+      console.log(analysisPrompt.substring(0, 200) + '...');
+    } else {
+      console.log('Failed to generate analysis prompt');
+    }
     
     // 3. Generate a backtest analysis prompt
-    const backtestPrompt = templateManager.generatePrompt('backtest-analysis', {
+    const backtestPrompt = await templateManager.generatePrompt('backtest-analysis', {
       results: testBacktestResults,
       strategy: testStrategyCode
     });
     console.log('\nBacktest Analysis Prompt (first 200 chars):');
-    console.log(backtestPrompt.substring(0, 200) + '...');
+    if (backtestPrompt) {
+      console.log(backtestPrompt.substring(0, 200) + '...');
+    } else {
+      console.log('Failed to generate backtest prompt');
+    }
     
     // 4. Generate a strategy enhancement prompt
-    const enhancementPrompt = templateManager.generatePrompt('strategy-enhancement', {
+    const enhancementPrompt = await templateManager.generatePrompt('strategy-enhancement', {
       strategyContent: testStrategyCode,
       count: '2'
     });
     console.log('\nStrategy Enhancement Prompt (first 200 chars):');
-    console.log(enhancementPrompt.substring(0, 200) + '...');
+    if (enhancementPrompt) {
+      console.log(enhancementPrompt.substring(0, 200) + '...');
+    } else {
+      console.log('Failed to generate enhancement prompt');
+    }
     
     console.log('\n--- Testing LLM Service Integration ---');
     

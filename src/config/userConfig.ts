@@ -49,36 +49,71 @@ export interface PineScriptConfig {
     openai?: {
       apiKey?: string;
       defaultModel?: string;
+      models?: {
+        [key: string]: {
+          enabled: boolean;
+          maxTokens?: number;
+          temperature?: number;
+        }
+      }
     };
     anthropic?: {
       apiKey?: string;
       defaultModel?: string;
-      // Available models: claude-3-opus-20240229, claude-3-sonnet-20240229, claude-3-haiku-20240307
-      modelOptions?: {
-        opus?: {
+      models?: {
+        [key: string]: {
           enabled: boolean;
           maxTokens?: number;
           temperature?: number;
-        };
-        sonnet?: {
-          enabled: boolean;
-          maxTokens?: number;
-          temperature?: number;
-        };
-        haiku?: {
-          enabled: boolean;
-          maxTokens?: number;
-          temperature?: number;
-        };
+        }
+      }
+    };
+    mock?: {
+      enabled: boolean;
+    };
+    maxRetries?: number;
+    timeout?: number;
+    promptTemplates?: Record<string, string>;
+  };
+
+  // Database Configuration
+  databases?: {
+    supabase?: {
+      url?: string;
+      apiKey?: string;
+      enabled?: boolean;
+      tables?: {
+        templates?: string;
+        templateVersions?: string;
+        templateUsage?: string;
+        analytics?: string;
+      };
+      vectorConfig?: {
+        table?: string;
+        embeddingColumn?: string;
+        matchThreshold?: number;
+        maxResults?: number;
+        defaultModel?: string;
       };
     };
-    promptTemplates?: {
-      strategyAnalysis?: string;
-      backtestAnalysis?: string;
-      enhancementGeneration?: string;
+    neondb?: {
+      url?: string;
+      apiKey?: string;
+      enabled?: boolean;
+      schemas?: {
+        templates?: string;
+        vectors?: string;
+        analytics?: string;
+      };
     };
-    timeout?: number;
-    maxRetries?: number;
+  };
+
+  // Analytics Configuration
+  analytics?: {
+    enabled: boolean;
+    trackTemplateUsage: boolean;
+    trackProviderUsage: boolean;
+    anonymizeData: boolean;
   };
 }
 
@@ -108,64 +143,130 @@ const defaultConfig: PineScriptConfig = {
     colorized: true,
   },
   llm: {
-    defaultProvider: 'mock', // Start with mock provider by default
-    timeout: 60000, // Default 60 second timeout
-    maxRetries: 3,
-    promptTemplates: {
-      strategyAnalysis: `Analyze this PineScript strategy and identify:
-1. Key parameters that could be optimized
-2. Logical weaknesses in entry/exit conditions
-3. Missing risk management components
-4. Opportunities for performance improvement
-
-Strategy:
-{{strategy}}`,
-      backtestAnalysis: `Analyze these backtest results for the given strategy:
-
-Strategy:
-{{strategy}}
-
-Backtest Results:
-{{results}}
-
-Please provide:
-1. Overall assessment and score out of 10
-2. Analysis of key metrics
-3. Notable strengths
-4. Concerns about the strategy
-5. Suggestions for improvement
-6. Parameter adjustment recommendations`,
-      enhancementGeneration: `Generate {{count}} enhanced versions of this PineScript strategy:
-
-{{strategy}}
-
-For each enhancement:
-1. Preserve the core logic
-2. Improve entry/exit conditions
-3. Add better risk management
-4. Optimize for performance
-5. Include comprehensive comments`,
+    defaultProvider: 'openai',
+    openai: {
+      defaultModel: 'gpt-4-turbo',
+      models: {
+        'gpt-4-turbo': {
+          enabled: true,
+          maxTokens: 4096,
+          temperature: 0.7
+        },
+        'gpt-3.5-turbo': {
+          enabled: true,
+          maxTokens: 4096,
+          temperature: 0.7
+        }
+      }
     },
     anthropic: {
       defaultModel: 'claude-3-sonnet-20240229',
-      modelOptions: {
-        opus: {
+      models: {
+        'claude-3-opus-20240229': {
           enabled: true,
           maxTokens: 4096,
           temperature: 0.7
         },
-        sonnet: {
+        'claude-3-sonnet-20240229': {
           enabled: true,
           maxTokens: 4096,
           temperature: 0.7
         },
-        haiku: {
+        'claude-3-haiku-20240307': {
           enabled: true,
           maxTokens: 2048,
           temperature: 0.7
         }
       }
+    },
+    mock: {
+      enabled: true
+    },
+    maxRetries: 3,
+    timeout: 60000,
+    promptTemplates: {
+      strategyAnalysis: `You are an expert Pine Script analyst. Review this trading strategy code and provide detailed analysis:
+
+Strategy Code:
+{{strategy}}
+
+Your analysis should include:
+1. Identification of parameters and how they affect the strategy
+2. Assessment of the trading logic
+3. Risk management evaluation
+4. Performance considerations
+
+Format your response as JSON with these sections:
+- parameters (identified parameters, suggestions for improvement)
+- logic (strengths, weaknesses, improvement suggestions)
+- risk (overall assessment, specific recommendations)
+- performance (bottlenecks, optimization suggestions)`,
+
+      backtestAnalysis: `You are an expert financial analyst. Analyze these backtest results for a trading strategy:
+
+Backtest Results:
+{{results}}
+
+Strategy Code:
+{{strategy}}
+
+Focus on:
+1. Overall performance assessment
+2. Key performance metrics evaluation
+3. Identifying strengths and weaknesses
+4. Suggesting parameter optimizations
+
+Format your response as JSON with:
+- overall (assessment, score out of 10)
+- metrics (analysis of key metrics)
+- strengths (list of strong points)
+- concerns (list of issues)
+- suggestions (list of improvement ideas)
+- parameterAdjustments (list of specific parameter changes with rationale)`,
+
+      enhancementGeneration: `You are an expert Pine Script developer. Generate {{count}} enhanced versions of this trading strategy:
+
+{{strategy}}
+
+Focus on different improvements for each version:
+1. Better risk management
+2. More precise entry/exit conditions
+3. Addressing weaknesses in the original
+4. Adding complementary indicators
+5. Include comprehensive comments`
     }
+  },
+  databases: {
+    supabase: {
+      enabled: false,
+      tables: {
+        templates: 'templates',
+        templateVersions: 'template_versions',
+        templateUsage: 'template_usage',
+        analytics: 'analytics'
+      },
+      vectorConfig: {
+        table: 'template_embeddings',
+        embeddingColumn: 'embedding',
+        matchThreshold: 0.75,
+        maxResults: 10,
+        defaultModel: 'text-embedding-3-small'
+      }
+    },
+    neondb: {
+      enabled: false,
+      schemas: {
+        templates: 'templates',
+        vectors: 'vectors',
+        analytics: 'analytics'
+      }
+    }
+  },
+  analytics: {
+    enabled: false,
+    trackTemplateUsage: true,
+    trackProviderUsage: true,
+    anonymizeData: true
   }
 };
 
@@ -320,10 +421,10 @@ export function configureLLM(options: {
     if (options.anthropicKey || options.anthropicModel) {
       if (!currentConfig.llm.anthropic) {
         currentConfig.llm.anthropic = {
-          modelOptions: {
-            opus: { enabled: true, maxTokens: 4000, temperature: 0.7 },
-            sonnet: { enabled: true, maxTokens: 4000, temperature: 0.7 },
-            haiku: { enabled: true, maxTokens: 2000, temperature: 0.7 }
+          models: {
+            'claude-3-opus-20240229': { enabled: true, maxTokens: 4000, temperature: 0.7 },
+            'claude-3-sonnet-20240229': { enabled: true, maxTokens: 4000, temperature: 0.7 },
+            'claude-3-haiku-20240307': { enabled: true, maxTokens: 2000, temperature: 0.7 }
           }
         };
       }
@@ -345,7 +446,7 @@ export function configureLLM(options: {
     
     return true;
   } catch (error) {
-    console.error('Error updating LLM configuration:', error);
+    console.error('Error configuring LLM:', error);
     return false;
   }
 }

@@ -1,38 +1,4 @@
-// Enhanced strategy 2
-//@version=5
-strategy("Simple Moving Average Crossover", overlay=true)
-
-// Input parameters
-fastLength = input(9, "Fast MA Length")
-slowLength = input(21, "Slow MA Length")
-takeProfitPct = input.float(2.0, "Take Profit %", minval=0.1, step=0.1) / 100
-stopLossPct = input.float(1.0, "Stop Loss %", minval=0.1, step=0.1) / 100
-
-// Calculate moving averages
-fastMA = ta.sma(close, fastLength)
-slowMA = ta.sma(close, slowLength)
-
-// Generate signals
-longCondition = ta.crossover(fastMA, slowMA)
-shortCondition = ta.crossunder(fastMA, slowMA)
-
-// Plot indicators
-plot(fastMA, "Fast MA", color=color.blue)
-plot(slowMA, "Slow MA", color=color.red)
-
-// Execute strategy
-if (longCondition)
-    strategy.entry("Long", strategy.long)
-
-if (shortCondition)
-    strategy.close("Long")
-
-// Set take profit and stop loss
-strategy.exit("Take Profit / Stop Loss", "Long", 
-             profit=strategy.position_avg_price * takeProfitPct, 
-             loss=strategy.position_avg_price * stopLossPct)
-
-// Plot buy/sell signals
-plotshape(longCondition, "Buy Signal", shape.triangleup, location.belowbar, color.green, size=size.small)
-plotshape(shortCondition, "Sell Signal", shape.triangledown, location.abovebar, color.red, size=size.small) 
-// with improvements
+// Enhanced strategy v2
+Based on this analysis of a PineScript strategy:
+[{"version":"Enhanced version 1","code":"// Enhance
+// with better risk management

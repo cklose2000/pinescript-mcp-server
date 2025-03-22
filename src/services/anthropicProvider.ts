@@ -29,14 +29,17 @@ export class AnthropicProvider implements LLMProvider {
     
     // Set max tokens and temperature based on the model
     if (this.defaultModel.includes('opus')) {
-      this.defaultMaxTokens = config.llm?.anthropic?.modelOptions?.opus?.maxTokens || 4000;
-      this.defaultTemperature = config.llm?.anthropic?.modelOptions?.opus?.temperature || 0.7;
+      const opusModel = config.llm?.anthropic?.models?.['claude-3-opus-20240229'];
+      this.defaultMaxTokens = opusModel?.maxTokens || 4000;
+      this.defaultTemperature = opusModel?.temperature || 0.7;
     } else if (this.defaultModel.includes('sonnet')) {
-      this.defaultMaxTokens = config.llm?.anthropic?.modelOptions?.sonnet?.maxTokens || 4000;
-      this.defaultTemperature = config.llm?.anthropic?.modelOptions?.sonnet?.temperature || 0.7;
+      const sonnetModel = config.llm?.anthropic?.models?.['claude-3-sonnet-20240229'];
+      this.defaultMaxTokens = sonnetModel?.maxTokens || 4000;
+      this.defaultTemperature = sonnetModel?.temperature || 0.7;
     } else if (this.defaultModel.includes('haiku')) {
-      this.defaultMaxTokens = config.llm?.anthropic?.modelOptions?.haiku?.maxTokens || 4000;
-      this.defaultTemperature = config.llm?.anthropic?.modelOptions?.haiku?.temperature || 0.7;
+      const haikuModel = config.llm?.anthropic?.models?.['claude-3-haiku-20240307'];
+      this.defaultMaxTokens = haikuModel?.maxTokens || 4000;
+      this.defaultTemperature = haikuModel?.temperature || 0.7;
     } else {
       // Default values if model is not recognized
       this.defaultMaxTokens = 4000;

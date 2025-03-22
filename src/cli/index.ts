@@ -10,6 +10,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { llmCommand } from './commands/llm.js';
 import { testAnthropicCommand } from './commands/test-anthropic.js';
+import templatesCommand from './commands/templates.js';
 
 // Initialize the CLI program
 const program = new Command()
@@ -20,6 +21,7 @@ const program = new Command()
 // Add all commands
 program.addCommand(llmCommand);
 program.addCommand(testAnthropicCommand);
+program.addCommand(templatesCommand);
 
 // Add help information
 program
@@ -29,7 +31,12 @@ Example usage:
   $ pinescript-mcp llm enhance my-strategy.pine -o enhanced-strategies
   $ pinescript-mcp llm config --provider openai --openai-key your-api-key
   $ pinescript-mcp llm config --provider anthropic --anthropic-key your-api-key
-  $ pinescript-mcp test-anthropic -p "Describe RSI oscillator" -m haiku`);
+  $ pinescript-mcp test-anthropic -p "Describe RSI oscillator" -m haiku
+  $ pinescript-mcp templates list
+  $ pinescript-mcp templates test
+  $ pinescript-mcp templates sync
+  $ pinescript-mcp templates optimize strategy.pine -p backtest.txt
+  $ pinescript-mcp templates search "volatility strategy"`);
 
 // Parse arguments
 program.parse(process.argv);
