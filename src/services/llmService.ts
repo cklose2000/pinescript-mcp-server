@@ -8,6 +8,7 @@
 import { config } from '../config/userConfig.js';
 import { OpenAIProvider } from './openaiProvider.js';
 import { AnthropicProvider } from './anthropicProvider.js';
+import { templateManager } from '../prompts/templateManager.js';
 
 // Types for LLM responses
 export interface StrategyAnalysis {
@@ -195,19 +196,27 @@ export class LLMService {
   }
 
   /**
-   * Get a specific prompt template and fill in placeholders
+   * Get a prompt from the template manager
    */
-  private getPromptFromTemplate(templateName: string, replacements: Record<string, string>): string {
-    const template = config.llm?.promptTemplates?.[templateName as keyof typeof config.llm.promptTemplates];
-    
-    if (!template) {
-      throw new Error(`Prompt template '${templateName}' not found in configuration`);
+  private getPromptFromTemplate(templateId: string, replacements: Record<string, string>): string {
+    try {
+      // First try to use the new template manager
+      return templateManager.generatePrompt(templateId, replacements);
+    } catch (error) {
+      console.warn(`Template '${templateId}' not found in template manager, falling back to legacy templates`);
+      
+      // Fall back to legacy templates from config
+      const template = config.llm?.promptTemplates?.[templateId as keyof typeof config.llm.promptTemplates];
+      
+      if (!template) {
+        throw new Error(`Prompt template '${templateId}' not found in configuration or template manager`);
+      }
+      
+      return Object.entries(replacements).reduce(
+        (prompt, [key, value]) => prompt.replace(new RegExp(`{{${key}}}`, 'g'), value),
+        template
+      );
     }
-    
-    return Object.entries(replacements).reduce(
-      (prompt, [key, value]) => prompt.replace(new RegExp(`{{${key}}}`, 'g'), value),
-      template
-    );
   }
 
   /**
@@ -244,7 +253,7 @@ export class LLMService {
    * Analyze a PineScript strategy and provide insights
    */
   async analyzeStrategy(strategyContent: string): Promise<StrategyAnalysis> {
-    const prompt = this.getPromptFromTemplate('strategyAnalysis', {
+    const prompt = this.getPromptFromTemplate('strategy-analysis', {
       strategy: strategyContent
     });
     
@@ -264,7 +273,7 @@ export class LLMService {
    * Analyze backtest results and provide insights
    */
   async analyzeBacktest(backtestResults: string, strategyContent: string): Promise<BacktestAnalysis> {
-    const prompt = this.getPromptFromTemplate('backtestAnalysis', {
+    const prompt = this.getPromptFromTemplate('backtest-analysis', {
       results: backtestResults,
       strategy: strategyContent
     });
@@ -285,8 +294,8 @@ export class LLMService {
    * Generate enhanced versions of a strategy
    */
   async enhanceStrategy(strategyContent: string, count: number = 3): Promise<EnhancedStrategy[]> {
-    const prompt = this.getPromptFromTemplate('enhancementGeneration', {
-      strategy: strategyContent,
+    const prompt = this.getPromptFromTemplate('strategy-enhancement', {
+      strategyContent: strategyContent,
       count: count.toString()
     });
     
