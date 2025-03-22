@@ -9,6 +9,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { llmCommand } from './commands/llm.js';
+import { testAnthropicCommand } from './commands/test-anthropic.js';
 
 // Initialize the CLI program
 const program = new Command()
@@ -18,6 +19,7 @@ const program = new Command()
 
 // Add all commands
 program.addCommand(llmCommand);
+program.addCommand(testAnthropicCommand);
 
 // Add help information
 program
@@ -25,7 +27,9 @@ program
 Example usage:
   $ pinescript-mcp llm analyze my-strategy.pine
   $ pinescript-mcp llm enhance my-strategy.pine -o enhanced-strategies
-  $ pinescript-mcp llm config --provider openai --openai-key your-api-key`);
+  $ pinescript-mcp llm config --provider openai --openai-key your-api-key
+  $ pinescript-mcp llm config --provider anthropic --anthropic-key your-api-key
+  $ pinescript-mcp test-anthropic -p "Describe RSI oscillator" -m haiku`);
 
 // Parse arguments
 program.parse(process.argv);

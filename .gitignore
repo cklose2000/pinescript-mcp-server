@@ -44,3 +44,6 @@ coverage/
 
 # Local development
 .local/ 
+
+# Generated strategy files
+enhanced/ 

@@ -1,0 +1,68 @@
+{
+  "summary": {
+    "netProfit": 2563.45,
+    "profitFactor": 1.83,
+    "winRate": 61.5,
+    "maxDrawdown": 18.2,
+    "recoveryFactor": 2.1,
+    "sharpeRatio": 0.92,
+    "totalTrades": 78,
+    "winningTrades": 48,
+    "losingTrades": 30
+  },
+  "trades": [
+    {
+      "entryTime": "2023-01-15T09:30:00Z",
+      "exitTime": "2023-01-18T14:45:00Z",
+      "entryPrice": 432.10,
+      "exitPrice": 448.75,
+      "profit": 16.65,
+      "profitPercent": 3.85,
+      "direction": "long"
+    },
+    {
+      "entryTime": "2023-01-25T12:15:00Z",
+      "exitTime": "2023-01-27T15:30:00Z",
+      "entryPrice": 456.25,
+      "exitPrice": 442.80,
+      "profit": -13.45,
+      "profitPercent": -2.95,
+      "direction": "long"
+    },
+    {
+      "entryTime": "2023-02-03T10:45:00Z",
+      "exitTime": "2023-02-10T11:00:00Z",
+      "entryPrice": 438.90,
+      "exitPrice": 462.35,
+      "profit": 23.45,
+      "profitPercent": 5.34,
+      "direction": "long"
+    }
+  ],
+  "monthlyPerformance": [
+    {
+      "month": "2023-01",
+      "profit": 743.20,
+      "trades": 18,
+      "winRate": 64.2
+    },
+    {
+      "month": "2023-02",
+      "profit": 925.35,
+      "trades": 21,
+      "winRate": 68.1
+    },
+    {
+      "month": "2023-03",
+      "profit": 894.90,
+      "trades": 19,
+      "winRate": 58.3
+    },
+    {
+      "month": "2023-04",
+      "profit": -425.60,
+      "trades": 20,
+      "winRate": 42.7
+    }
+  ]
+} 

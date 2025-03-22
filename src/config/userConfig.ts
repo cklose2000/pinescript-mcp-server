@@ -53,10 +53,28 @@ export interface PineScriptConfig {
     anthropic?: {
       apiKey?: string;
       defaultModel?: string;
+      // Available models: claude-3-opus-20240229, claude-3-sonnet-20240229, claude-3-haiku-20240307
+      modelOptions?: {
+        opus?: {
+          enabled: boolean;
+          maxTokens?: number;
+          temperature?: number;
+        };
+        sonnet?: {
+          enabled: boolean;
+          maxTokens?: number;
+          temperature?: number;
+        };
+        haiku?: {
+          enabled: boolean;
+          maxTokens?: number;
+          temperature?: number;
+        };
+      };
     };
     promptTemplates?: {
       strategyAnalysis?: string;
-      backTestAnalysis?: string;
+      backtestAnalysis?: string;
       enhancementGeneration?: string;
     };
     timeout?: number;
@@ -100,36 +118,53 @@ const defaultConfig: PineScriptConfig = {
 3. Missing risk management components
 4. Opportunities for performance improvement
 
-Strategy code:
+Strategy:
+{{strategy}}`,
+      backtestAnalysis: `Analyze these backtest results for the given strategy:
+
+Strategy:
 {{strategy}}
 
-Respond with valid JSON with sections for parameters, logic, risk, and performance.`,
-      
-      backTestAnalysis: `Analyze these TradingView backtest results:
+Backtest Results:
 {{results}}
 
-For the strategy:
+Please provide:
+1. Overall assessment and score out of 10
+2. Analysis of key metrics
+3. Notable strengths
+4. Concerns about the strategy
+5. Suggestions for improvement
+6. Parameter adjustment recommendations`,
+      enhancementGeneration: `Generate {{count}} enhanced versions of this PineScript strategy:
+
 {{strategy}}
 
-Identify:
-1. Key strengths in the performance
-2. Areas of concern (drawdown, win rate, etc.)
-3. Specific suggestions to address performance issues
-4. Parameters that should be adjusted based on these results
-
-Respond with actionable recommendations for improving the strategy.`,
-      
-      enhancementGeneration: `Based on this analysis of a PineScript strategy:
-{{analysis}}
-
-Generate {{count}} different enhanced versions of this original strategy:
-{{strategy}}
-
-1. Version with improved entry/exit logic
-2. Version with added risk management
-3. Version with optimized parameters
-
-For each version, explain the changes made and expected improvement.`
+For each enhancement:
+1. Preserve the core logic
+2. Improve entry/exit conditions
+3. Add better risk management
+4. Optimize for performance
+5. Include comprehensive comments`,
+    },
+    anthropic: {
+      defaultModel: 'claude-3-sonnet-20240229',
+      modelOptions: {
+        opus: {
+          enabled: true,
+          maxTokens: 4096,
+          temperature: 0.7
+        },
+        sonnet: {
+          enabled: true,
+          maxTokens: 4096,
+          temperature: 0.7
+        },
+        haiku: {
+          enabled: true,
+          maxTokens: 2048,
+          temperature: 0.7
+        }
+      }
     }
   }
 };
@@ -243,21 +278,77 @@ function isObject(item: any): item is Record<string, any> {
   return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
-// Configure LLM settings
-export const configureLLM = (llmConfig: Partial<PineScriptConfig['llm']>): PineScriptConfig => {
-  const currentConfig = loadUserConfig();
-  
-  // Create updated config with new LLM settings
-  const updatedConfig: PineScriptConfig = {
-    ...currentConfig,
-    llm: {
-      ...currentConfig.llm,
-      ...llmConfig
+/**
+ * Update the LLM configuration
+ */
+export function configureLLM(options: {
+  provider?: 'openai' | 'anthropic' | 'mock';
+  openaiKey?: string;
+  openaiModel?: string;
+  anthropicKey?: string;
+  anthropicModel?: string;
+}) {
+  try {
+    let currentConfig = loadUserConfig() || {};
+    
+    // Initialize LLM config if not present
+    if (!currentConfig.llm) {
+      currentConfig.llm = {};
     }
-  };
-  
-  return saveUserConfig(updatedConfig);
-};
+    
+    // Update default provider if specified
+    if (options.provider) {
+      currentConfig.llm.defaultProvider = options.provider;
+    }
+    
+    // Update OpenAI settings if provided
+    if (options.openaiKey || options.openaiModel) {
+      if (!currentConfig.llm.openai) {
+        currentConfig.llm.openai = {};
+      }
+      
+      if (options.openaiKey) {
+        currentConfig.llm.openai.apiKey = options.openaiKey;
+      }
+      
+      if (options.openaiModel) {
+        currentConfig.llm.openai.defaultModel = options.openaiModel;
+      }
+    }
+    
+    // Update Anthropic settings if provided
+    if (options.anthropicKey || options.anthropicModel) {
+      if (!currentConfig.llm.anthropic) {
+        currentConfig.llm.anthropic = {
+          modelOptions: {
+            opus: { enabled: true, maxTokens: 4000, temperature: 0.7 },
+            sonnet: { enabled: true, maxTokens: 4000, temperature: 0.7 },
+            haiku: { enabled: true, maxTokens: 2000, temperature: 0.7 }
+          }
+        };
+      }
+      
+      if (options.anthropicKey) {
+        currentConfig.llm.anthropic.apiKey = options.anthropicKey;
+      }
+      
+      if (options.anthropicModel) {
+        currentConfig.llm.anthropic.defaultModel = options.anthropicModel;
+      }
+    }
+    
+    // Save updated config
+    saveUserConfig(currentConfig);
+    
+    // Reload config in a way that doesn't reassign the constant
+    Object.assign(config, loadUserConfig());
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating LLM configuration:', error);
+    return false;
+  }
+}
 
 // Export configuration
 export const config = loadUserConfig(); 

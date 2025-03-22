@@ -120,28 +120,42 @@ flowchart TD
 1. **LLM Service**: Central service that coordinates interactions with language models
    - Maintains a singleton instance for application-wide access
    - Delegates to appropriate provider based on configuration
-   - Handles common tasks like retry logic and error handling
+   - Handles common tasks like error handling and fallback mechanisms
+   - Provides interfaces for strategy analysis, enhancement, and backtest analysis
 
 2. **Provider Factory**: Creates and returns the configured LLM provider
    - Reads configuration to determine which provider to use
    - Initializes provider with appropriate API keys and settings
-   - Falls back to mock provider if required configuration is missing
+   - Falls back to mock provider if required configuration is missing or authentication fails
 
 3. **Provider Implementations**: Concrete implementations for different LLM providers
-   - Implement a common interface for consistent interaction
-   - Handle provider-specific API calls and authentication
-   - Format responses according to expected return types
+   - **OpenAI Provider**
+     - Connects to OpenAI API with robust authentication handling
+     - Extracts API keys reliably from multiple sources (.env, environment variables, config)
+     - Provides custom JSON response handling with error tolerance
+     - Implements normalization for consistent response structures
+     - Includes extensive debugging and logging
+   - **Mock Provider**
+     - Provides realistic but static responses for testing
+     - Mimics the behavior of real providers without external dependencies
+     - Allows development without API keys or costs
+   - **Anthropic Provider (Planned)**
+     - Will implement the common LLM provider interface for Claude models
+     - Will follow the same robust error handling patterns as OpenAI
 
 4. **Response Parsers**: Convert LLM responses into structured data
    - Parse JSON responses into typed objects
    - Handle error cases and malformed responses
    - Apply validation to ensure response integrity
+   - Normalize responses for consistent handling
+   - Extract relevant JSON data from potentially unstructured responses
 
 5. **Prompt Templates**: Manage templates for different types of LLM requests
    - Strategy analysis prompts
    - Backtest analysis prompts
    - Enhancement generation prompts
-   - User-customizable templates
+   - Include examples of expected response formats
+   - Clearly structure requirements for model responses
 
 ## Data Flow
 
