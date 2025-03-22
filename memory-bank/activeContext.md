@@ -1,8 +1,42 @@
 # Active Context
 
 ## Current Focus
+The current focus is on implementing Phase 3 of the PineScript MCP project, starting with the Enhanced Prompt Engineering tasks. We are creating a more flexible and modular prompt template system to improve the quality and consistency of interactions with LLMs.
 
-We are currently implementing the **LLM integration** for strategy analysis and optimization. The primary goal is to leverage AI capabilities to enhance PineScript trading strategies through automated analysis and improvement suggestions.
+## Recent Changes
+1. Implemented a comprehensive template structure system for managing prompt templates
+2. Created dedicated templates for strategy analysis, backtest analysis, and strategy enhancement
+3. Updated the LLM service to use the new template system with backward compatibility
+4. Added testing capabilities for template generation
+5. Updated the directory structure to include a dedicated prompts module
+
+## Next Steps
+1. Continue implementing the Enhanced Prompt Engineering phase:
+   - Add specialized templates for optimization, educational content, and other use cases
+   - Implement version control for templates
+   - Create template evaluation metrics
+   - Add a template development workflow
+
+2. Begin planning the Comprehensive Testing Framework:
+   - Define test scenarios and expected outcomes
+   - Set up test infrastructure
+   - Develop automated test scripts
+
+## Active Decisions
+1. **Template Structure Design**: We've decided to use a standardized template structure with defined sections (introduction, task, context, examples, constraints, output format) to ensure consistency across different prompt types.
+
+2. **Backward Compatibility**: To ensure a smooth transition, the updated LLM service maintains backward compatibility with the existing configuration-based templates while introducing the new template management system.
+
+3. **ESM Module System**: We're using ES modules throughout the project, which requires attention to file extensions (.js) in import statements.
+
+## Technical Constraints
+1. The project uses TypeScript with ES modules, requiring careful attention to import/export patterns.
+2. We need to maintain compatibility with both OpenAI and Anthropic providers.
+3. The system should allow for graceful fallback to mock providers for testing and when API connectivity issues occur.
+
+## Current Issues
+1. Need to ensure consistent output formats across different LLM providers
+2. Testing with TypeScript ES modules requires specific configuration and run commands
 
 ### Recently Completed
 
@@ -69,66 +103,6 @@ We have completed the implementation of the LLM integration with the following c
 - Designing a system that can be extended to other providers in the future
 - Successfully resolving OpenAI API key handling for multi-line .env file entries
 - Supporting model-specific configurations for different LLM models
-
-### Next Steps
-
-We have developed a detailed implementation plan for the next phase of development, focusing on three key areas:
-
-#### 1. Enhanced Prompt Engineering (3 weeks)
-- **Week 1**: Prompt Template Structure & Research
-  - Create standardized template structure with sections for context, examples, constraints, and output format
-  - Research prompt engineering techniques specific to financial/trading domain
-  - Analyze current prompts' strengths/weaknesses by comparing responses
-
-- **Week 2**: Template Development
-  - Create enhanced strategy analysis templates with domain-specific examples
-  - Develop backtest analysis templates with sample metrics interpretation examples
-  - Build parameter optimization templates with risk/reward tradeoff examples
-
-- **Week 3**: Prompt Management System
-  - Implement prompt category system (analysis, enhancement, optimization)
-  - Create dynamic prompt assembly with replaceable components
-  - Add configuration options for prompt verbosity and detail level
-
-#### 2. Comprehensive Testing Framework (4 weeks)
-- **Week 1**: Test Infrastructure Setup
-  - Design test architecture for LLM provider testing
-  - Create provider mocks with reproducible responses
-  - Set up test data and fixtures for various strategy types
-
-- **Week 2**: Provider Unit Tests
-  - Implement unit tests for OpenAI provider
-  - Implement unit tests for Anthropic provider
-  - Create tests for provider selection and fallback mechanisms
-
-- **Week 3**: Integration Tests
-  - Build integration tests for strategy analysis workflow
-  - Implement tests for backtest analysis process
-  - Create tests for strategy enhancement generation
-
-- **Week 4**: Prompt Effectiveness Testing
-  - Develop metrics for measuring prompt effectiveness
-  - Create automated testing system to evaluate responses against benchmarks
-  - Implement response quality comparison between providers
-
-#### 3. User Interface Development (6 weeks)
-- **Week 1-2**: Dashboard Foundation
-  - Set up React/Next.js frontend project structure
-  - Design component library and style system
-  - Implement authentication and user management
-  - Create API services for backend communication
-
-- **Week 3-4**: Analysis Visualization
-  - Create strategy code viewer with syntax highlighting
-  - Implement strategy analysis results visualization
-  - Build backtest metrics visualization with charts
-  - Develop comparative view for different strategy versions
-
-- **Week 5-6**: Interactive Features
-  - Create parameter adjustment interface with validation
-  - Implement "what-if" analysis tool for strategy modification
-  - Build LLM provider selection and configuration interface
-  - Develop results export and sharing functionality
 
 ### Key Milestones
 - End of Week 3: Review prompt engineering improvements
